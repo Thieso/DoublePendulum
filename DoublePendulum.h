@@ -4,42 +4,52 @@
 #include "cinder/gl/gl.h"
 #include "cinder/Vector.h"
 #include <iostream>
+#include <cmath>
 #include <list>
+#include <vector>
 
 #ifndef PENDULUM_H
 #define PENDULUM_H
 
 using namespace ci;
 using namespace ci::app;
+using namespace std;
 
-class Pendulum{
+class DoublePendulum{
     private: 
-        glm::vec2 upperPoint; 
-        glm::vec2 lowerPoint; 
-        int* color;  // color of Pendulum
-        float radius         = 10; // radius of circle
-        float l              = 300; // [mm] length of pendulum
+        glm::vec2 upperPointP1; 
+        glm::vec2 lowerPointP1; 
+        glm::vec2 lowerPointP2; 
+        int* color1;  // color of pendulum 1
+        int* color2;  // color of pendulum 2
+        float radius         = 7; // radius of circle
         float g              = 9.81; // [m/s^2] gravitation
         float pi             = 3.14; // pi
-        float _phi           = pi/4; // initial angel of pendulum
-        float phi            = _phi;  // angel of pendulum
-        float phiPrev        = _phi; // prev angle
-        float dt             = 0.017; // time step
-        float t              = 0; // total time
-        int smallAngles      = 0; // set the calculation method
-        int damping          = 0; // damping (true or false)
-        float dr             = 10; // damping ratio
+        float _phi           = pi/4; // initial angel of pendulums
+        double draw_length = 150; // base draw length for pendulums
+        double h = 0.02; // step size
+        double* a;
+        double* b;
+        double* c;
+        double* d;
+        double* x;
+        double* state; // state vector holding angles and angular velocities for both pendulums
+        double phi1, phi2; // angles of pendulums
+        double phi1d, phi2d; // angular velocities of pendulums
+        double m1, m2; // masses of pendulums
+        double l1, l2; // length of pendulums
         // parameters for height graph
         glm::vec2 heightPoint; // single height point 
         std::list<float> hArray; // array holding the heigh values
         int heigh_array_size = 200; // size of array holding height values for graph
     public: 
-        Pendulum(int, int, int*); 
-        void calculateLowerPoint(); 
+        DoublePendulum(int*, int*); 
+        ~DoublePendulum(); 
+        void f(double*);
+        void calculateLowerPoints(); 
         void calculateNextTimestep(); 
-        void calculateNextTimestepSmallAngles(); 
         void updatePendulum(); 
-        void drawHeightGraph(); 
+        //void drawHeightGraph(); 
 };
 
 #endif

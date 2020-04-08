@@ -3,43 +3,40 @@
 #include "cinder/gl/gl.h"
 #include "cinder/Vector.h"
 #include <iostream>
-#include "Pendulum.h"
+#include "DoublePendulum.h"
 
 using namespace ci;
 using namespace ci::app;
 
 class PendulumApp : public App {
-	private: 
-		Pendulum *p1; 
-		Pendulum *p2; 
-		int color1[3] = {0, 0, 1}; 
-		int color2[3] = {0, 1, 0}; 
-	public: 
-		void draw(); 
-		void setup(); 
+    private: 
+        DoublePendulum *p; 
+        int color1[3] = {0, 0, 1}; 
+        int color2[3] = {0, 1, 0}; 
+    public: 
+        void draw(); 
+        void setup(); 
 };
 
 void prepareSettings( PendulumApp::Settings* settings ){
-	settings->setWindowSize(800, 600); 
-	settings->setFrameRate(60.0f); 
-	settings->setTitle("Cinder"); // to make it float on default 
+    settings->setWindowSize(800, 600); 
+    settings->setFrameRate(60.0f); 
+    settings->setTitle("Double Pendulum Simulation"); 
 }
 
 void PendulumApp::setup(){
     // create pendulums
-	p1 = new Pendulum(0, 0, color1); 
-	p2 = new Pendulum(0, 1, color2); 
+    p = new DoublePendulum(color1, color2); 
 }
 
 void PendulumApp::draw(){
-	gl::clear(); 
-    // simulate the pendulum with visualization
-	p1->updatePendulum(); 
-	p2->updatePendulum(); 
+    gl::clear(); 
+    // simulate the DoublePendulum with visualization
+    p->updatePendulum(); 
 
-    // draw a graph of the height values of the pendulum
-	p1->drawHeightGraph(); 
-	p2->drawHeightGraph(); 
+    // draw a graph of the height values of the DoublePendulum
+    //p1->drawHeightGraph(); 
+    //p2->drawHeightGraph(); 
 }
 
 // This line tells Cinder to actually create and run the application.

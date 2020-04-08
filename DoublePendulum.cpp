@@ -1,93 +1,135 @@
 // in order to include this class in the project you have to adjust CMakeLists.txt in the parent directory
+#include <cmath>
 #include <iostream>
+#include <algorithm>
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
 #include "cinder/Vector.h"
-#include "Pendulum.h"
+#include "DoublePendulum.h"
 
-// create pendulum object
-Pendulum::Pendulum(int _smallAngles, int _damping, int* _color){
+// create DoublePendulum object
+DoublePendulum::DoublePendulum(int* _color1, int* _color2){
     //initialize variables
-    upperPoint = glm::vec2(getWindowWidth()/2, 0); 
-    lowerPoint = glm::vec2(getWindowWidth()/2, getWindowHeight()/2);
-    color = _color; 
-    smallAngles = _smallAngles; 
-    damping = _damping; 
+    upperPointP1 = glm::vec2(getWindowWidth()/2, 0); 
+    lowerPointP1 = glm::vec2(getWindowWidth()/2, getWindowHeight()/2);
+    lowerPointP2 = glm::vec2(getWindowWidth()/2, getWindowHeight()/2);
+    color1 = _color1; 
+    color2 = _color2; 
+    p1 = _phi;
+    p2 = _phi;
+    p1d = 0;
+    p2d = 0;
+    m1 = 1;
+    m2 = 2;
+    l1 = 1;
+    l2 = 1;
+    a = new double[4];
+    b = new double[4];
+    c = new double[4];
+    d = new double[4];
+    x = new double[4];
+    state = new double[4];
+}
+
+// destructor
+DoublePendulum::~DoublePendulum(){
+    // free memory of pointers
+    delete[] a;
+    delete[] b;
+    delete[] c;
+    delete[] d;
+    delete[] x;
+    delete[] state;
 }
 
 // calculate where the lower point is at by using the upper point, the angle and
 // the length
-void Pendulum::calculateLowerPoint(){
-    lowerPoint = glm::vec2(l * sin(phi), l * cos(phi)) + upperPoint;
+void DoublePendulum::calculateLowerPoints(){
+    lowerPointP1 = glm::vec2(100 * sin(phi1), 100 * cos(phi1)) + upperPointP1;
+    lowerPointP2 = glm::vec2(100 * l2/l1 * sin(phi2), 100 * l2/l1 * cos(phi2)) + lowerPointP1;
 }
 
 // calculate the next time step depending on the previous one. Calculation
 // depends on whether damping is enabled or not
-void Pendulum::calculateNextTimestep(){
-    // get current angle
-    float temp = phi; 
-    // calculate new angle
-    if (damping)
-        phi = -dt*dt*((g/(l/400))*sin(phi)+dr*(phi-phiPrev))+2*phi-phiPrev; 
-    else
-        phi = -dt*dt*((g/(l/400))*sin(phi))+2*phi-phiPrev; 
-    // set previous angle
-    phiPrev = temp; 
+void DoublePendulum::calculateNextTimestep(){
+    // calculate new angular velocity using runge kutta 4th order method
+    f(state);
+    memcpy(a, x, 4 * sizeof(double));
+
+    f(state + h/2 * a);
+    memcpy(b, x, 4 * sizeof(double));
+
+    f(state + h/2 * b);
+    memcpy(c, x, 4 * sizeof(double));
+
+    f(state + h * c);
+    memcpy(d, x, 4 * sizeof(double));
+
+    // calculate new state values
+    state = state + h/6 * (a + 2 * b + 2 * c + d);
 }
 
-// calculate next time step assuming a small angle approximation
-void Pendulum::calculateNextTimestepSmallAngles(){
-    // calculate phi
-    t += dt; 
-    phi = _phi * cos(sqrt(g/(l/400))*t); 
+void DoublePendulum::f(double* states) {
+    // set new phi1d and phi2d
+    x[0] = states[3];
+    x[1] = states[4];
+
+    // calculate new states[3]d
+    x[2] = (-g * (2*m1 + m2) * sin(states[0]) - m2 * g * sin(states[0] - 2*states[1]) - 2 * sin(states[0] - states[1]) * m2 * (states[4]*states[4] * l2 + states[3]*states[3] * l1 * cos(states[0] - states[1]))) / (l2 * (2 * m1 + m2 - m2 * cos(2 * states[0] - 2 * states[1])));
+    
+    // calculate new states[1]dd
+    x[3] = (2 * sin(states[0] - states[1]) * (states[3]*states[3] * l1 * (m1 + m2) + g * (m1 + m2) * cos(states[0]) + states[4]*states[4] * l2 * m2 * cos(states[0] - states[1]))) / (l2 * (2 * m1 + m2 - m2 * cos(2 * states[0] - 2 * states[1])));
 }
 
-// update the pendulum for the next time step
-void Pendulum::updatePendulum(){
+
+// update the DoublePendulum for the next time step
+void DoublePendulum::updatePendulum(){
     // calculate the angle for the next timestep 
-    if (smallAngles)
-        calculateNextTimestepSmallAngles(); 
-    else
-        calculateNextTimestep(); 
-
-    // calculate the position of the lower point of the pendulum
-    calculateLowerPoint(); 
-
-    // set the color of the pendulum
-    gl::color(color[0], color[1], color[2]); 
+    calculateNextTimestep(); 
 
     // update the upper point in case window got resized
-    upperPoint = glm::vec2(getWindowWidth()/2, 0); 
+    upperPointP1 = glm::vec2(getWindowWidth()/2, 0); 
 
-    // draw the line of the pendulum
-    gl::drawLine(upperPoint, lowerPoint);
+    // calculate the position of the lower point of the DoublePendulum
+    calculateLowerPoints(); 
 
-    // draw a circle at the end of the line
-    gl::drawSolidCircle(lowerPoint, radius); 
+    // set the color of pendulum 1
+    gl::color(color1[0], color1[1], color1[2]); 
+
+    // draw the upper pendulum
+    gl::drawLine(upperPointP1, lowerPointP1);
+    gl::drawSolidCircle(lowerPointP1, radius); 
+
+    // set the color of pendulum 1
+    gl::color(color2[0], color2[1], color2[2]); 
+
+    // draw the upper pendulum
+    gl::drawLine(lowerPointP1, lowerPointP2);
+    gl::drawSolidCircle(lowerPointP2, radius); 
 }
 
-// display a height graph showing the height of the end of the pendulum
-void Pendulum::drawHeightGraph(){
-    // get height of pendulum
-    float h = phi*l;  
+// display a height graph showing the height of the end of the DoublePendulum
+//void DoublePendulum::drawHeightGraph(){
+    //// get height of DoublePendulum
+    //float h = phi*l;  
 
-    // push new element to the list holding the height values
-    hArray.push_front(h); 
+    //// push new element to the list holding the height values
+    //hArray.push_front(h); 
 
-    // if list is has reached a certain size remove the last element
-    if (hArray.size() > heigh_array_size){
-        hArray.pop_back(); 
-    }
+    //// if list is has reached a certain size remove the last element
+    //if (hArray.size() > heigh_array_size){
+        //hArray.pop_back(); 
+    //}
 
-    // set color of height graph to color of pendulum
-    gl::color(color[0], color[1], color[2]); 
+    //// set color of height graph to color of DoublePendulum
+    //gl::color(color[0], color[1], color[2]); 
 
-    // Display the array below the pendulum
-    int positionShift = 0; 
-    for(auto i = hArray.begin(); i != hArray.end(); i++){
-        heightPoint = glm::vec2(getWindowWidth()/2-positionShift, 2*l - 0.5*_phi*l - 0.4*(*i) - radius);
-        gl::drawSolidCircle(heightPoint, 2); 
-        positionShift += 1; 
-    }
-}
+    //// Display the array below the DoublePendulum
+    //int positionShift = 0; 
+    //for(auto i = hArray.begin(); i != hArray.end(); i++){
+        //heightPoint = glm::vec2(getWindowWidth()/2-positionShift, 2*l - 0.5*_phi*l - 0.4*(*i) - radius);
+        //gl::drawSolidCircle(heightPoint, 2); 
+        //positionShift += 1; 
+    //}
+//}
