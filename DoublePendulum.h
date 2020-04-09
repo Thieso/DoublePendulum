@@ -1,15 +1,16 @@
 // in order to include this class in the project you have to adjust CMakeLists.txt in the parent directory
-#include "cinder/app/App.h"
-#include "cinder/app/RendererGl.h"
-#include "cinder/gl/gl.h"
-#include "cinder/Vector.h"
 #include <iostream>
 #include <cmath>
 #include <list>
 #include <vector>
+#include "cinder/app/App.h"
+#include "cinder/app/RendererGl.h"
+#include "cinder/gl/gl.h"
+#include "cinder/Vector.h"
+#include "States.h"
 
-#ifndef PENDULUM_H
-#define PENDULUM_H
+#ifndef DOUBLEPENDULUM_H
+#define DOUBLEPENDULUM_H
 
 using namespace ci;
 using namespace ci::app;
@@ -28,16 +29,15 @@ class DoublePendulum{
         float _phi           = pi/4; // initial angel of pendulums
         double draw_length = 150; // base draw length for pendulums
         double h = 0.02; // step size
-        double* a;
-        double* b;
-        double* c;
-        double* d;
+        States a;
+        States b;
+        States c;
+        States d;
         double* x;
-        double* state; // state vector holding angles and angular velocities for both pendulums
-        double phi1, phi2; // angles of pendulums
-        double phi1d, phi2d; // angular velocities of pendulums
+        States states; // state vector holding angles and angular velocities for both pendulums
         double m1, m2; // masses of pendulums
         double l1, l2; // length of pendulums
+        double phi1, phi2, phi1d, phi2d; // helper variables for easier calculations
         // parameters for height graph
         glm::vec2 heightPoint; // single height point 
         std::list<float> hArray; // array holding the heigh values
@@ -45,7 +45,7 @@ class DoublePendulum{
     public: 
         DoublePendulum(int*, int*); 
         ~DoublePendulum(); 
-        void f(double*);
+        void f(States);
         void calculateLowerPoints(); 
         void calculateNextTimestep(); 
         void updatePendulum(); 

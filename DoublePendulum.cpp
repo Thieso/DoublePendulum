@@ -16,70 +16,62 @@ DoublePendulum::DoublePendulum(int* _color1, int* _color2){
     lowerPointP2 = glm::vec2(getWindowWidth()/2, getWindowHeight()/2);
     color1 = _color1; 
     color2 = _color2; 
-    p1 = _phi;
-    p2 = _phi;
-    p1d = 0;
-    p2d = 0;
     m1 = 1;
     m2 = 2;
     l1 = 1;
     l2 = 1;
-    a = new double[4];
-    b = new double[4];
-    c = new double[4];
-    d = new double[4];
-    x = new double[4];
-    state = new double[4];
+    // set initial states
+    states.set_phi1(pi/4);
+    states.set_phi2(pi/2);
 }
 
 // destructor
 DoublePendulum::~DoublePendulum(){
-    // free memory of pointers
-    delete[] a;
-    delete[] b;
-    delete[] c;
-    delete[] d;
-    delete[] x;
-    delete[] state;
 }
 
 // calculate where the lower point is at by using the upper point, the angle and
 // the length
 void DoublePendulum::calculateLowerPoints(){
-    lowerPointP1 = glm::vec2(100 * sin(phi1), 100 * cos(phi1)) + upperPointP1;
-    lowerPointP2 = glm::vec2(100 * l2/l1 * sin(phi2), 100 * l2/l1 * cos(phi2)) + lowerPointP1;
+    lowerPointP1 = glm::vec2(100 * sin(states.get_phi1()), 100 * cos(states.get_phi1())) + upperPointP1;
+    lowerPointP2 = glm::vec2(100 * l2/l1 * sin(states.get_phi2()), 100 * l2/l1 * cos(states.get_phi2())) + lowerPointP1;
 }
 
 // calculate the next time step depending on the previous one. Calculation
 // depends on whether damping is enabled or not
 void DoublePendulum::calculateNextTimestep(){
     // calculate new angular velocity using runge kutta 4th order method
-    f(state);
-    memcpy(a, x, 4 * sizeof(double));
+    f(states);
+    a.set_states(x);
 
-    f(state + h/2 * a);
-    memcpy(b, x, 4 * sizeof(double));
+    f(states + a * (h/2));
+    b.set_states(x);
 
-    f(state + h/2 * b);
-    memcpy(c, x, 4 * sizeof(double));
+    f(states + b * (h/2));
+    c.set_states(x);
 
-    f(state + h * c);
-    memcpy(d, x, 4 * sizeof(double));
+    f(states + c * h);
+    d.set_states(x);
 
-    // calculate new state values
-    state = state + h/6 * (a + 2 * b + 2 * c + d);
+    // calculate new states values
+    states = states + (a + b * 2.0 + c * 2.0 + d) * (h/6);
 }
 
-void DoublePendulum::f(double* states) {
-    // set new phi1d and phi2d
-    x[0] = states[3];
-    x[1] = states[4];
+void DoublePendulum::f(States states) {
+    // convert to array for easier 
+    phi1 = states.get_phi1();
+    phi2 = states.get_phi2();
+    phi1d = states.get_phi1d();
+    phi2d = states.get_phi2d();
 
-    // calculate new states[3]d
-    x[2] = (-g * (2*m1 + m2) * sin(states[0]) - m2 * g * sin(states[0] - 2*states[1]) - 2 * sin(states[0] - states[1]) * m2 * (states[4]*states[4] * l2 + states[3]*states[3] * l1 * cos(states[0] - states[1]))) / (l2 * (2 * m1 + m2 - m2 * cos(2 * states[0] - 2 * states[1])));
+    // set new phi1d and phi2d
+    x[0] = phi1d;
+    x[1] = phi2d;
+
+    // calculate new s[3]d
+    x[2] = (-g * (2*m1 + m2) * sin(phi1) - m2 * g * sin(phi1 - 2*phi2) - 2 * sin(phi1 - phi2) * m2 * (phi2d*phi2d * l2 + phi1d*phi1d * l1 * cos(phi1 - phi2))) / (l2 * (2 * m1 + m2 - m2 * cos(2 * phi1 - 2 * phi2)));
     
-    // calculate new states[1]dd
-    x[3] = (2 * sin(states[0] - states[1]) * (states[3]*states[3] * l1 * (m1 + m2) + g * (m1 + m2) * cos(states[0]) + states[4]*states[4] * l2 * m2 * cos(states[0] - states[1]))) / (l2 * (2 * m1 + m2 - m2 * cos(2 * states[0] - 2 * states[1])));
+    // calculate new phi2dd
+    x[3] = (2 * sin(phi1 - phi2) * (phi1d*phi1d * l1 * (m1 + m2) + g * (m1 + m2) * cos(phi1) + phi2d*phi2d * l2 * m2 * cos(phi1 - phi2))) / (l2 * (2 * m1 + m2 - m2 * cos(2 * phi1 - 2 * phi2)));
 }
 
 
