@@ -64,3 +64,16 @@ States States::operator*(const double d) {
     states.phi2d = this->phi2d * d;
     return states;
 }
+
+
+// operator overloading for easier getter
+double& States::operator[](const int i) {
+    if (i == 0)
+        return phi1;
+    else if (i == 1)
+        return phi2;
+    else if (i == 2)
+        return phi1d;
+    else
+        return phi2d;
+}

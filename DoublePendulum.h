@@ -1,8 +1,8 @@
-// in order to include this class in the project you have to adjust CMakeLists.txt in the parent directory
 #include <iostream>
 #include <cmath>
 #include <list>
 #include <vector>
+#include <algorithm>
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
@@ -18,38 +18,35 @@ using namespace std;
 
 class DoublePendulum{
     private: 
-        glm::vec2 upperPointP1; 
-        glm::vec2 lowerPointP1; 
-        glm::vec2 lowerPointP2; 
-        int* color1;  // color of pendulum 1
-        int* color2;  // color of pendulum 2
-        float radius         = 7; // radius of circle
-        float g              = 9.81; // [m/s^2] gravitation
-        float pi             = 3.14; // pi
-        float _phi           = pi/4; // initial angel of pendulums
-        double draw_length = 150; // base draw length for pendulums
-        double h = 0.02; // step size
-        States a;
-        States b;
-        States c;
-        States d;
-        double* x;
-        States states; // state vector holding angles and angular velocities for both pendulums
-        double m1, m2; // masses of pendulums
-        double l1, l2; // length of pendulums
-        double phi1, phi2, phi1d, phi2d; // helper variables for easier calculations
-        // parameters for height graph
-        glm::vec2 heightPoint; // single height point 
-        std::list<float> hArray; // array holding the heigh values
-        int heigh_array_size = 200; // size of array holding height values for graph
+        glm::vec2 upperPointP1;       // upper point of pendulum 1
+        glm::vec2 lowerPointP1;       // lower point of pendulum 1 and upper point of 2
+        glm::vec2 lowerPointP2;       // lower point of pendulum 2
+        int* color1;                  // color of pendulum 1
+        int* color2;                  // color of pendulum 2
+        float radius = 7;             // radius of circle
+        float g = 9.81;               // [m/s^2] gravitation
+        float pi = 3.14;              // pi for this project
+        double draw_length = 150;     // base draw length for pendulums
+        double m1, m2;                // masses of pendulums
+        double l1, l2;                // length of pendulums
+        States states;                // state vector holding angles and angular velocities for both pendulums
+        States a;                     // helper state vector for runge kutta method
+        States b;                     // helper state vector for runge kutta method
+        States c;                     // helper state vector for runge kutta method
+        States d;                     // helper state vector for runge kutta method
+        double h = 0.02;              // step size
+        double ssScaling = 100;       // scaling for state space values to make it easily visible
+        glm::vec2 ssPoint;            // single point in state space
+        std::list<glm::vec2> ssArray; // array holding the state space values
+        int ssSize = 200;             // size of array holding space values for graph
     public: 
         DoublePendulum(int*, int*); 
         ~DoublePendulum(); 
-        void f(States);
+        void f(States*, States);
         void calculateLowerPoints(); 
         void calculateNextTimestep(); 
         void updatePendulum(); 
-        //void drawHeightGraph(); 
+        void drawStateSpace(); 
 };
 
 #endif

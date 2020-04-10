@@ -26,6 +26,7 @@ class States{
         void set_phi2d(double);
         States operator+(const States&);
         States operator*(const double);
+        double& operator[](const int);
 };
 
 #endif

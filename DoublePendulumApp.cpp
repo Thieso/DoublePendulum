@@ -13,14 +13,15 @@ class PendulumApp : public App {
         DoublePendulum *p; 
         int color1[3] = {0, 0, 1}; 
         int color2[3] = {0, 1, 0}; 
+        float frameRate = 60.0;
     public: 
         void draw(); 
         void setup(); 
 };
 
-void prepareSettings( PendulumApp::Settings* settings ){
+void prepareSettings(PendulumApp::Settings* settings){
     settings->setWindowSize(800, 600); 
-    settings->setFrameRate(60.0f); 
+    settings->setFrameRate(50.0f); 
     settings->setTitle("Double Pendulum Simulation"); 
 }
 
@@ -33,10 +34,8 @@ void PendulumApp::draw(){
     gl::clear(); 
     // simulate the DoublePendulum with visualization
     p->updatePendulum(); 
-
-    // draw a graph of the height values of the DoublePendulum
-    //p1->drawHeightGraph(); 
-    //p2->drawHeightGraph(); 
+    // draw the state space of the angles
+    p->drawStateSpace(); 
 }
 
 // This line tells Cinder to actually create and run the application.
