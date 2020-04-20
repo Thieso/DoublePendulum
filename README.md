@@ -1,6 +1,8 @@
 # Double Pendulum 
 
-Simple double pendulum simulation using cinder
+Simple double pendulum simulation using cinder.
+Additionally displays the state space and the angles of the two pendulums over
+time. 
 
 ## Dependencies
 

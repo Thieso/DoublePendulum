@@ -15,8 +15,8 @@ DoublePendulum::DoublePendulum(int* _color1, int* _color2){
     l1 = 1;
     l2 = 1;
     // set initial states
-    states.set_phi1(pi/2);
-    states.set_phi2(pi);
+    states.set_phi1(pi/4);
+    states.set_phi2(pi/4);
 }
 
 // destructor
