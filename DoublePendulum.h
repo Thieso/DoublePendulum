@@ -29,16 +29,17 @@ class DoublePendulum{
         double draw_length = 150;     // base draw length for pendulums
         double m1, m2;                // masses of pendulums
         double l1, l2;                // length of pendulums
+        double t;                     // time
         States states;                // state vector holding angles and angular velocities for both pendulums
         States a;                     // helper state vector for runge kutta method
         States b;                     // helper state vector for runge kutta method
         States c;                     // helper state vector for runge kutta method
         States d;                     // helper state vector for runge kutta method
-        double h = 0.02;              // step size
+        double h = 0.025;             // step size
         double ssScaling = 100;       // scaling for state space values to make it easily visible
-        glm::vec2 ssPoint;            // single point in state space
-        std::list<glm::vec2> ssArray; // array holding the state space values
-        int ssSize = 200;             // size of array holding space values for graph
+        std::list<glm::vec2> phi1Array; // array holding the phi1 values
+        std::list<glm::vec2> phi2Array; // array holding the phi2 values
+        int angleSize = 400;             // size of array holding angle values
     public: 
         DoublePendulum(int*, int*); 
         ~DoublePendulum(); 
@@ -47,6 +48,7 @@ class DoublePendulum{
         void calculateNextTimestep(); 
         void updatePendulum(); 
         void drawStateSpace(); 
+        void drawAngleTime();
 };
 
 #endif

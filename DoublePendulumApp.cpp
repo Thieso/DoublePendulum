@@ -20,7 +20,7 @@ class PendulumApp : public App {
 };
 
 void prepareSettings(PendulumApp::Settings* settings){
-    settings->setWindowSize(800, 600); 
+    settings->setWindowSize(800, 400); 
     settings->setFrameRate(50.0f); 
     settings->setTitle("Double Pendulum Simulation"); 
 }
@@ -31,11 +31,21 @@ void PendulumApp::setup(){
 }
 
 void PendulumApp::draw(){
-    gl::clear(); 
+    gl::enable(GL_SCISSOR_TEST);
     // simulate the DoublePendulum with visualization
+    gl::viewport(glm::vec2(0, getWindowHeight()/2), glm::vec2(getWindowWidth()/2, getWindowHeight()/2));
+    gl::scissor(glm::vec2(0, getWindowHeight()/2), glm::vec2(getWindowWidth()/2, getWindowHeight()/2));
+    gl::clear(); 
     p->updatePendulum(); 
     // draw the state space of the angles
+    gl::viewport(glm::vec2(getWindowWidth()/2, 0), glm::vec2(getWindowWidth()/2, getWindowHeight()));
+    gl::scissor(glm::vec2(getWindowWidth()/2, 0), glm::vec2(getWindowWidth()/2, getWindowHeight()));
     p->drawStateSpace(); 
+    // draw angle graph
+    gl::viewport(glm::vec2(0, 0), glm::vec2(getWindowWidth()/2, getWindowHeight()/2));
+    gl::scissor(glm::vec2(0, 0), glm::vec2(getWindowWidth()/2, getWindowHeight()/2));
+    gl::clear(); 
+    p->drawAngleTime(); 
 }
 
 // This line tells Cinder to actually create and run the application.
