@@ -4,6 +4,8 @@ Simple double pendulum simulation using cinder.
 Additionally displays the state space and the angles of the two pendulums over
 time. 
 
+![](app_view.png?raw=true)
+
 ## Dependencies
 
 `Cinder`: refer to
